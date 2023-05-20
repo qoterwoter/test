@@ -37,7 +37,7 @@ class SupportRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SupportRequest
-        fields = ('id', 'user', 'request_status', 'title', 'description')
+        fields = ('id', 'user', 'status', 'title', 'description')
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

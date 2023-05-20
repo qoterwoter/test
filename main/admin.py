@@ -40,4 +40,9 @@ class FeedbackAdmin(admin.ModelAdmin):
 
 admin.site.register(Feedback, FeedbackAdmin)
 
-admin.site.register(SupportRequest)
+
+class SupportRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'title', 'description', 'status')
+
+
+admin.site.register(SupportRequest, SupportRequestAdmin)

@@ -97,7 +97,7 @@ class SupportRequest(models.Model):
         ('resolved', 'Решен'),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    request_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     title = models.CharField(max_length=100)
     description = models.TextField()
 
