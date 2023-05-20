@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import CarDocument, Car, Order
+from .models import CarDocument, Car, Order, SupportRequest
 
 
 class CarDocumentSerializer(serializers.ModelSerializer):
@@ -22,14 +22,22 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = '__all__'
         extra_kwargs = {
-                    'client': {'required': False},
-                }
+            'client': {'required': False},
+        }
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name')
+
+
+class SupportRequestSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = SupportRequest
+        fields = ('id', 'user', 'request_status', 'title', 'description')
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

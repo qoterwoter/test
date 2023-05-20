@@ -1,4 +1,4 @@
-from .models import CarDocument, Car, Driver, Order, Feedback
+from .models import CarDocument, Car, Driver, Order, Feedback, SupportRequest
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
@@ -39,3 +39,5 @@ class FeedbackAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Feedback, FeedbackAdmin)
+
+admin.site.register(SupportRequest)

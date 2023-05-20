@@ -90,6 +90,22 @@ class Feedback(models.Model):
         verbose_name_plural = ('Отзывы')
 
 
+class SupportRequest(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'В ожидании'),
+        ('ongoing', 'В работе'),
+        ('resolved', 'Решен'),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    request_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+
+    class Meta:
+        verbose_name = ('Запрос в техподдержку')
+        verbose_name_plural = ('Запросы в техподдержку')
+
+
 @receiver(post_save, sender=User)
 def create_driver(sender, instance, created, **kwargs):
     if created and instance.is_staff:
