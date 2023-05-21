@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
+import datetime
 
 
 class CarDocument(models.Model):
@@ -74,6 +75,7 @@ class DriverResponse(models.Model):
     driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
     price = models.IntegerField(verbose_name='Стоимость', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    duration = models.DurationField(default=datetime.timedelta(hours=0))
 
     class Meta:
         verbose_name = ('Отклик на заказ')

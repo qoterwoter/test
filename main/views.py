@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from .serializers import UserSerializer, UserRegistrationSerializer, SupportRequestSerializer, OrderRatingSerializer, \
-    FeedbackSerializer
+    FeedbackSerializer, DriverResponseSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -14,6 +14,7 @@ from .serializers import OrderSerializer
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from django.core import serializers
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
@@ -80,6 +81,10 @@ def order_detail(request, order_id):
     if driver is not None:
         car = driver.car
 
+    driver_responses = list(DriverResponse.objects.filter(order=order_id))
+    driver_response_serializer = DriverResponseSerializer(driver_responses, many=True)
+    driver_responses_data = driver_response_serializer.data
+
     data = {
         'order_id': order.id,
         'from_location': order.from_location,
@@ -95,10 +100,11 @@ def order_detail(request, order_id):
         'children_amount': order.children_amount,
         'created_at': order.created_at,
         'comment': order.comment,
-        'driver_responses': list(DriverResponse.objects.filter(order=order_id).values())
+        'driver_responses': driver_responses_data
     }
 
     return JsonResponse(data)
+
 
 
 @api_view(['POST'])

@@ -22,7 +22,10 @@ class DriverAdmin(admin.ModelAdmin):
     list_display = ('name', 'rating', 'car_name')
 
     def car_name(self, obj):
-        return obj.car.name
+        if obj.car is not None:
+            return obj.car.name
+        else:
+            return ""
 
 
 admin.site.register(Driver, DriverAdmin)
