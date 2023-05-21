@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
@@ -49,20 +50,12 @@ class Driver(models.Model):
 
 
 class Order(models.Model):
-    ORDER_STATUS_CHOICES = [
-        ('P', ('Ожидание')),
-        ('A', ('Принят')),
-        ('C', ('Отменен')),
-        ('F', ('Завершен')),
-    ]
     from_location = models.CharField(max_length=100, verbose_name=('откуда'))
     to_location = models.CharField(max_length=100, verbose_name=('куда'))
     arrive_time = models.DateTimeField(verbose_name=('время прибытия'))
     departure_time = models.DateTimeField(verbose_name=('время отправления'))
     client = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=('клиент'))
     driver = models.ForeignKey('Driver', on_delete=models.CASCADE, verbose_name=('водитель'), null=True, blank=True)
-    order_status = models.CharField(max_length=1, choices=ORDER_STATUS_CHOICES, default='P',
-                                    verbose_name=('статус заказа'), null=True, blank=True)
     men_amount = models.IntegerField(verbose_name=('количество взрослых'))
     children_amount = models.IntegerField(verbose_name=('количество детей'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('дата создания'))
@@ -75,6 +68,17 @@ class Order(models.Model):
     def __str_(self):
         return f"{self.from_location} - {self.to_location} ({self.departure_time})"
 
+
+class OrderRating(models.Model):
+    communication_rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name='Коммуникация')
+    driver_rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name='Водитель')
+    transport_rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)],verbose_name='Транспорт')
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, verbose_name='Заказ')
+
+    class Meta:
+        verbose_name = ('Оценка заказа')
+        verbose_name_plural = ('Оценки заказов')
+        unique_together = ('order',)  # make order field unique
 
 class Feedback(models.Model):
     client = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=('клиент'))

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import CarDocument, Car, Order, SupportRequest
+from .models import CarDocument, Car, Order, SupportRequest, OrderRating
 
 
 class CarDocumentSerializer(serializers.ModelSerializer):
@@ -24,6 +24,12 @@ class OrderSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'client': {'required': False},
         }
+
+
+class OrderRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderRating
+        fields = '__all__'
 
 
 class UserSerializer(serializers.ModelSerializer):

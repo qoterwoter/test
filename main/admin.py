@@ -1,4 +1,4 @@
-from .models import CarDocument, Car, Driver, Order, Feedback, SupportRequest
+from .models import CarDocument, Car, Driver, Order, Feedback, SupportRequest, OrderRating
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
@@ -27,11 +27,18 @@ admin.site.register(Driver, DriverAdmin)
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
-    'from_location', 'to_location', 'departure_time', 'arrive_time', 'client', 'driver', 'order_status', 'men_amount',
-    'children_amount', 'created_at', 'comment')
+        'from_location', 'to_location', 'departure_time', 'arrive_time', 'client', 'driver', 'men_amount',
+        'children_amount', 'created_at', 'comment')
 
 
 admin.site.register(Order, OrderAdmin)
+
+
+class OrderRatingAdmin(admin.ModelAdmin):
+    list_display = ('order', 'communication_rating', 'driver_rating', 'transport_rating')
+
+
+admin.site.register(OrderRating, OrderRatingAdmin)
 
 
 class FeedbackAdmin(admin.ModelAdmin):
