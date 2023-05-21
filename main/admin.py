@@ -19,7 +19,10 @@ admin.site.register(Car, CarAdmin)
 
 
 class DriverAdmin(admin.ModelAdmin):
-    list_display = ('name', 'rating', 'car')
+    list_display = ('name', 'rating', 'car_name')
+
+    def car_name(self, obj):
+        return obj.car.name
 
 
 admin.site.register(Driver, DriverAdmin)
@@ -27,7 +30,7 @@ admin.site.register(Driver, DriverAdmin)
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
-        'from_location', 'to_location', 'departure_time', 'arrive_time', 'client', 'driver', 'men_amount',
+        'from_location', 'id', 'to_location', 'departure_time', 'client', 'driver', 'men_amount',
         'children_amount', 'created_at', 'comment')
 
 
@@ -42,7 +45,7 @@ admin.site.register(OrderRating, OrderRatingAdmin)
 
 
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ('client', 'order', 'rating', 'comment')
+    list_display = ('client', 'rating', 'comment', 'status', 'date')
 
 
 admin.site.register(Feedback, FeedbackAdmin)

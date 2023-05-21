@@ -14,8 +14,8 @@ class CarDocument(models.Model):
     registration = models.CharField(max_length=50, verbose_name=('регистрация'))
     car_status = models.CharField(max_length=50, verbose_name=('статус автомобиля'))
 
-    def __str_(self):
-        return ""
+    def __str__(self):
+        return f"{self.pk} Document"
 
     class Meta:
         verbose_name = ('Документы на машину')
@@ -27,7 +27,7 @@ class Car(models.Model):
     car_photo_path = models.CharField(max_length=100, verbose_name=('Фото автомобиля'))
     car_document_id = models.ForeignKey(CarDocument, on_delete=models.CASCADE, verbose_name=('документы автомобиля'))
 
-    def __str_(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -52,7 +52,6 @@ class Driver(models.Model):
 class Order(models.Model):
     from_location = models.CharField(max_length=100, verbose_name=('откуда'))
     to_location = models.CharField(max_length=100, verbose_name=('куда'))
-    arrive_time = models.DateTimeField(verbose_name=('время прибытия'))
     departure_time = models.DateTimeField(verbose_name=('время отправления'))
     client = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=('клиент'))
     driver = models.ForeignKey('Driver', on_delete=models.CASCADE, verbose_name=('водитель'), null=True, blank=True)
@@ -60,6 +59,7 @@ class Order(models.Model):
     children_amount = models.IntegerField(verbose_name=('количество детей'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('дата создания'))
     comment = models.TextField(verbose_name=('комментарий'))
+    price = models.IntegerField(verbose_name='Стоимость', null=True, blank=True)
 
     class Meta:
         verbose_name = ('Заказ')
@@ -67,6 +67,17 @@ class Order(models.Model):
 
     def __str_(self):
         return f"{self.from_location} - {self.to_location} ({self.departure_time})"
+
+
+class DriverResponse(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
+    price = models.IntegerField(verbose_name='Стоимость', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = ('Отклик на заказ')
+        verbose_name_plural = ('Отклики на заказы')
 
 
 class OrderRating(models.Model):
@@ -80,14 +91,21 @@ class OrderRating(models.Model):
         verbose_name_plural = ('Оценки заказов')
         unique_together = ('order',)  # make order field unique
 
+
 class Feedback(models.Model):
+    STATUS_CHOICE = (
+        ('publish', 'Опубликован'),
+        ('on_moder', 'На обработке'),
+        ('hiden', 'Скрыт')
+    )
     client = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=('клиент'))
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name=('заказ'))
-    rating = models.IntegerField(verbose_name=('оценка'))
+    rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)],verbose_name='Оценка')
     comment = models.TextField(verbose_name=('комментарий'))
+    status = models.CharField(choices=STATUS_CHOICE, verbose_name='Статус отзыва', max_length=8, default='on_moder')
+    date = models.DateTimeField(auto_now=True, verbose_name='Дата создания')
 
     def __str_(self):
-        return f"{self.client.username} - {self.order}"
+        return f"{self.client.username} - {self.rating}"
 
     class Meta:
         verbose_name = ('Отзыв')
