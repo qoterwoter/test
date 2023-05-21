@@ -59,7 +59,7 @@ class Order(models.Model):
     men_amount = models.IntegerField(verbose_name=('количество взрослых'))
     children_amount = models.IntegerField(verbose_name=('количество детей'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=('дата создания'))
-    comment = models.TextField(verbose_name=('комментарий'))
+    comment = models.TextField(verbose_name=('комментарий'), null=True, blank=True)
     price = models.IntegerField(verbose_name='Стоимость', null=True, blank=True)
 
     class Meta:
