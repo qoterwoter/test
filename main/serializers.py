@@ -68,7 +68,7 @@ class DriverResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Feedback
-        fields = ('id', 'client', 'rating', 'comment', 'status', 'date'
+        fields = ('id', 'client', 'rating', 'comment', 'status', 'date')
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
