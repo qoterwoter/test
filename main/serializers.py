@@ -62,6 +62,7 @@ class DriverSerializer(serializers.ModelSerializer):
         model = Feedback
         fields = ('id', 'name', 'rating', 'car', 'user')
 
+
 class DriverResponseSerializer(serializers.ModelSerializer):
     order = OrderSerializer(read_only=True)
     driver = DriverSerializer(read_only=True)
@@ -69,6 +70,7 @@ class DriverResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = ('id', 'client', 'rating', 'comment', 'status', 'date')
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,4 +1,4 @@
-from .models import CarDocument, Car, Driver, Order, Feedback, SupportRequest, OrderRating
+from .models import CarDocument, Car, Driver, Order, Feedback, SupportRequest, OrderRating, DriverResponse
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User
@@ -56,3 +56,10 @@ class SupportRequestAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SupportRequest, SupportRequestAdmin)
+
+
+class DriverResponseAdmin(admin.ModelAdmin):
+    list_display = ('order', 'driver', 'price', 'created_at')
+
+
+admin.site.register(DriverResponse, DriverResponseAdmin)

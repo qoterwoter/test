@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework import viewsets, permissions
-from .models import Order, SupportRequest, OrderRating, Feedback, Driver
+from .models import Order, SupportRequest, OrderRating, Feedback, Driver, DriverResponse
 from .serializers import OrderSerializer
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -95,6 +95,7 @@ def order_detail(request, order_id):
         'children_amount': order.children_amount,
         'created_at': order.created_at,
         'comment': order.comment,
+        'driver_responses': list(DriverResponse.objects.filter(order=order_id).values())
     }
 
     return JsonResponse(data)
