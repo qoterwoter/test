@@ -1,7 +1,8 @@
 from .models import CarDocument, Car, Driver, Order, Feedback, SupportRequest, OrderRating, DriverResponse
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 from .models import User
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 
 
 class CarDocumentAdmin(admin.ModelAdmin):
@@ -66,3 +67,40 @@ class DriverResponseAdmin(admin.ModelAdmin):
 
 
 admin.site.register(DriverResponse, DriverResponseAdmin)
+
+
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ('username','email',)
+
+
+class CustomUserChangeForm(UserChangeForm):
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
+class CustomUserAdmin(UserAdmin):
+    add_form = CustomUserCreationForm
+    form = CustomUserChangeForm
+    model = User
+    list_display = ('email', 'first_name', 'last_name', 'is_staff')
+    list_filter = ('is_staff', 'is_superuser', 'groups', 'user_permissions')
+    fieldsets = (
+        (None, {'fields': ('username','email', 'password')}),
+        (('Personal info'), {'fields': ('first_name', 'last_name')}),
+        (('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        (('Important dates'), {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username','phoneNumber', 'first_name','last_name','email', 'password1', 'password2', 'is_staff', 'is_active'),
+        }),
+    )
+    search_fields = ('email', 'first_name', 'last_name')
+    ordering = ('email',)
+
+
+admin.site.register(User, CustomUserAdmin)

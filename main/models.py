@@ -1,11 +1,52 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import AbstractUser, Group
+import datetime
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User
-import datetime
+from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.db import models
+from django.contrib.auth.models import UserManager as BaseUserManager
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, email, password, **extra_fields):
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password, **extra_fields):
+        """
+        Creates and saves a superuser with the given email and password.
+        """
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(email, password, **extra_fields)
+
+
+class User(AbstractUser):
+    phoneNumberRegex = RegexValidator(regex = r"^\+?1?\d{8,15}$")
+    phoneNumber = models.CharField(validators = [phoneNumberRegex], max_length = 16, unique = True)
+    groups = models.ManyToManyField(Group, blank=True, related_name='users_in_group')
+
+    objects = UserManager()
+
+    user_permissions = models.ManyToManyField(
+        Permission,
+        blank=True,
+        related_name='users_with_permission',
+        verbose_name=('user permissions'),
+        help_text=(
+            'Specific permissions for this user.'),
+    )
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
 
 class CarDocument(models.Model):
@@ -40,7 +81,7 @@ class Driver(models.Model):
     name = models.CharField(max_length=50, verbose_name=('имя'))
     rating = models.IntegerField(verbose_name=('рейтинг'))
     car = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name=('автомобиль'), null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=('пользователь'), blank=True, limit_choices_to={'is_staff': True})
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
 
     def __str_(self):
         return self.name
@@ -140,3 +181,5 @@ def create_driver(sender, instance, created, **kwargs):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+

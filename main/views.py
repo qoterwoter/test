@@ -7,14 +7,19 @@ from .serializers import UserSerializer, UserRegistrationSerializer, SupportRequ
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from django.contrib.auth.models import User
 from rest_framework import viewsets, permissions
-from .models import Order, SupportRequest, OrderRating, Feedback, Driver, DriverResponse
+from .models import Order, SupportRequest, OrderRating, Feedback, Driver, DriverResponse, User
 from .serializers import OrderSerializer
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
-from django.core import serializers
+
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
@@ -72,11 +77,6 @@ class FeedbackViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         serializer.save(client=user)
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
 
 
 def order_detail(request, order_id):
@@ -141,7 +141,10 @@ class UserLoginView(ObtainAuthToken):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
-        user_data = UserSerializer(user).data
+        if isinstance(user, User):
+            user_data = UserSerializer(user).data
+        else:
+            user_data = ''
         token, created = Token.objects.get_or_create(user=user)
         user_data['token'] = token.key
 

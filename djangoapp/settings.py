@@ -31,6 +31,8 @@ ALLOWED_HOSTS = ['test.std-962.ist.mospolytech.ru', '127.0.0.1']
 
 # Application definition
 
+AUTH_USER_MODEL = 'main.User'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

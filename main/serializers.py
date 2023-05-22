@@ -1,6 +1,26 @@
-from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import CarDocument, Car, Order, SupportRequest, OrderRating, Feedback, DriverResponse, Driver
+from .models import CarDocument, Car, Order, SupportRequest, OrderRating, Feedback, DriverResponse, Driver, User
+
+
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+        extra_kwargs = {'username': {'required': False}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            first_name=validated_data.get('first_name'),
+            last_name=validated_data.get('last_name'),
+            username=validated_data.get('username'),
+            password=validated_data.get('password'),
+            email=validated_data.get('email'),
+        )
+        user.is_artist = True
+        user.save()
+        return user
 
 
 class CarDocumentSerializer(serializers.ModelSerializer):
@@ -31,12 +51,6 @@ class OrderRatingSerializer(serializers.ModelSerializer):
         model = OrderRating
         fields = '__all__'
 
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name')
-        extra_kwargs = {'username': {'required': False}}
 
 
 class SupportRequestSerializer(serializers.ModelSerializer):
