@@ -74,6 +74,11 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         serializer.save(client=user)
 
 
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
 def order_detail(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
     driver = order.driver
