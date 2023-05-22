@@ -12,25 +12,31 @@ from django.contrib.auth.models import UserManager as BaseUserManager
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, password, **extra_fields):
+    def create_user(self, username, email, password, phoneNumber, is_staff, **extra_fields):
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        first_name = extra_fields.pop('first_name', '')
+        last_name = extra_fields.pop('last_name', '')
+        user = self.model(
+            username=username,
+            email=email,
+            phoneNumber=phoneNumber,
+            is_staff=is_staff,
+            **extra_fields)
         user.set_password(password)
+        user.first_name = first_name
+        user.last_name = last_name
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
-        """
-        Creates and saves a superuser with the given email and password.
-        """
+    def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
 
 
 class User(AbstractUser):
-    phoneNumberRegex = RegexValidator(regex = r"^\+?1?\d{8,15}$")
-    phoneNumber = models.CharField(validators = [phoneNumberRegex], max_length = 16, unique = True)
+    phoneNumberRegex = RegexValidator(regex=r'^\+{1}[7]{1}\s{1}\(\d{3}\)\s{1}\d{3}\s{1}\d{2}\s{1}\d{2}$', message="Phone number must be in the format +7 (XXX) XXX XX XX")
+    phoneNumber = models.CharField(validators = [phoneNumberRegex], max_length = 18, verbose_name='Номер телефона')
     groups = models.ManyToManyField(Group, blank=True, related_name='users_in_group')
 
     objects = UserManager()
@@ -49,25 +55,18 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
 
-class CarDocument(models.Model):
-    date_created = models.DateTimeField(auto_now_add=True, verbose_name=('дата создания'))
-    driver_license = models.CharField(max_length=50, verbose_name=('водительские права'))
-    world_license = models.CharField(max_length=50, verbose_name=('международные права'))
-    registration = models.CharField(max_length=50, verbose_name=('регистрация'))
-    car_status = models.CharField(max_length=50, verbose_name=('статус автомобиля'))
-
-    def __str__(self):
-        return f"{self.pk} Document"
-
-    class Meta:
-        verbose_name = ('Документы на машину')
-        verbose_name_plural = ('Документы на машины')
-
-
 class Car(models.Model):
+    CAR_STATUS_CHOICES = [
+        ('on_moderate', 'Ждет обработки'),
+        ('moderating', 'В обработке'),
+        ('approved', 'Одобрено')
+    ]
     name = models.CharField(max_length=50, verbose_name=('название'))
-    car_photo_path = models.CharField(max_length=100, verbose_name=('Фото автомобиля'))
-    car_document_id = models.ForeignKey(CarDocument, on_delete=models.CASCADE, verbose_name=('документы автомобиля'))
+    car_photo_path = models.ImageField(upload_to='car_photos', verbose_name=('Фото автомобиля'))
+    car_pass = models.CharField(max_length=255, verbose_name='Регистрация ТС')
+    photo_with_car_pass = models.CharField(max_length=255, verbose_name=('Фото с правами'))
+    taxi_license = models.CharField(max_length=255, verbose_name='Лицензия на перевозку')
+    car_status = models.CharField(max_length=50, verbose_name=('статус автомобиля'), choices=CAR_STATUS_CHOICES, default='on_moderate')
 
     def __str__(self):
         return self.name
@@ -78,10 +77,9 @@ class Car(models.Model):
 
 
 class Driver(models.Model):
-    name = models.CharField(max_length=50, verbose_name=('имя'))
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
     rating = models.IntegerField(verbose_name=('рейтинг'))
     car = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name=('автомобиль'), null=True, blank=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
 
     def __str_(self):
         return self.name
@@ -116,7 +114,7 @@ class DriverResponse(models.Model):
     driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
     price = models.IntegerField(verbose_name='Стоимость', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    duration = models.DurationField(default=datetime.timedelta(hours=0))
+    duration = models.PositiveIntegerField(verbose_name='Длительность в часах', default=0)
 
     class Meta:
         verbose_name = ('Отклик на заказ')
@@ -174,12 +172,10 @@ class SupportRequest(models.Model):
 @receiver(post_save, sender=User)
 def create_driver(sender, instance, created, **kwargs):
     if created and instance.is_staff:
-        Driver.objects.create(user=instance)
+        Driver.objects.create(user=instance, rating=4)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
-
-

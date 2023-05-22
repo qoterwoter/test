@@ -6,7 +6,7 @@ from .models import Driver
 
 @receiver(post_save, sender=User)
 def create_driver(sender, instance, created, **kwargs):
-    if created and instance.is_staff:
+    if created and instance.is_staff and not instance.is_superuser:
         driver = Driver.objects.create(user=instance)
         driver.save()
 

@@ -1,14 +1,13 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import CarDocument, Car, Order, SupportRequest, OrderRating, Feedback, DriverResponse, Driver, User
-
-
+from .models import Car, Order, SupportRequest, OrderRating, Feedback, DriverResponse, Driver, User
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
-        extra_kwargs = {'username': {'required': False}}
+        extra_kwargs = {'username': {'required': False}, 'password': {'required': False}, 'phoneNumber': {'required': False}, 'is_staff': {'required': False}}
 
     def create(self, validated_data):
         user = User.objects.create_user(
@@ -17,24 +16,20 @@ class UserSerializer(serializers.ModelSerializer):
             username=validated_data.get('username'),
             password=validated_data.get('password'),
             email=validated_data.get('email'),
+            is_staff=validated_data.get('is_staff')
         )
-        user.is_artist = True
         user.save()
         return user
 
 
-class CarDocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CarDocument
-        fields = '__all__'
-
-
 class CarSerializer(serializers.ModelSerializer):
-    car_document_id = CarDocumentSerializer()
+    image_url = serializers.ImageField(required=False)
 
     class Meta:
         model = Car
         fields = '__all__'
+        extra_kwargs = {'name': {'required': False}, 'car_photo_path': {'required': False}, 'car_pass': {'required': False}
+            , 'photo_with_car_pass': {'required': False}, 'taxi_license': {'required': False}, 'car_status': {'required': False}}
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -50,7 +45,6 @@ class OrderRatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderRating
         fields = '__all__'
-
 
 
 class SupportRequestSerializer(serializers.ModelSerializer):
@@ -75,7 +69,7 @@ class DriverSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Driver
-        fields = ('id', 'name', 'rating', 'car', 'user')
+        fields = ('id', 'rating', 'car', 'user')
 
 
 class DriverResponseSerializer(serializers.ModelSerializer):
@@ -90,16 +84,18 @@ class DriverResponseSerializer(serializers.ModelSerializer):
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'last_name', 'first_name', 'username', 'email', 'password', 'is_staff')
+        fields = ('id', 'last_name', 'first_name', 'username', 'email', 'password', 'phoneNumber','is_staff')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user = User.objects.create_user(
+        user = get_user_model().objects.create_user(
             validated_data['username'],
             validated_data['email'],
             validated_data['password'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', ''),
+            validated_data['phoneNumber'],
+            validated_data['is_staff']
         )
+        user.first_name = validated_data.get('first_name', '')
+        user.last_name = validated_data.get('last_name', '')
         user.save()
         return user
