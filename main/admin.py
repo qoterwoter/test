@@ -61,7 +61,7 @@ admin.site.register(SupportRequest, SupportRequestAdmin)
 
 
 class DriverResponseAdmin(admin.ModelAdmin):
-    list_display = ('display_order', 'display_driver', 'price', 'created_at')
+    list_display = ('display_order', 'display_driver', 'price', 'created_at', 'status')
 
     def display_order(self, obj):
         return f"{obj.order.from_location} - {obj.order.to_location} ({obj.order.departure_time})"

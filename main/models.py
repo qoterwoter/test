@@ -63,9 +63,9 @@ class Car(models.Model):
     ]
     name = models.CharField(max_length=50, verbose_name=('название'))
     car_photo_path = models.ImageField(upload_to='car_photos', verbose_name=('Фото автомобиля'))
-    car_pass = models.CharField(max_length=255, verbose_name='Регистрация ТС')
-    photo_with_car_pass = models.CharField(max_length=255, verbose_name=('Фото с правами'))
-    taxi_license = models.CharField(max_length=255, verbose_name='Лицензия на перевозку')
+    car_pass = models.ImageField(upload_to='car_pass', verbose_name='Регистрация ТС')
+    photo_with_car_pass = models.ImageField(upload_to='photo_with_car_pass', verbose_name=('Фото с правами'))
+    taxi_license = models.ImageField(upload_to='taxi_licesnse', verbose_name='Лицензия на перевозку')
     car_status = models.CharField(max_length=50, verbose_name=('статус автомобиля'), choices=CAR_STATUS_CHOICES, default='on_moderate')
 
     def __str__(self):
@@ -110,15 +110,20 @@ class Order(models.Model):
 
 
 class DriverResponse(models.Model):
+    STATUS_CHOICES = (
+        ('a', 'Выбран пользователем'),
+        ('n', ''),
+    )
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
     price = models.IntegerField(verbose_name='Стоимость', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    duration = models.PositiveIntegerField(verbose_name='Длительность в часах', default=0)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='n')
 
     class Meta:
         verbose_name = ('Отклик на заказ')
         verbose_name_plural = ('Отклики на заказы')
+        unique_together = ('order', 'driver')
 
 
 class OrderRating(models.Model):

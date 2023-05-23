@@ -33,12 +33,22 @@ class CarSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    response = serializers.SerializerMethodField()
+
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = ('id', 'from_location', 'to_location', 'departure_time', 'client', 'driver', 'men_amount', 'children_amount', 'created_at', 'comment', 'price', 'response')
         extra_kwargs = {
             'client': {'required': False},
         }
+
+    def get_response(self, obj):
+        driver_response = DriverResponse.objects.filter(driver__user=self.context['request'].user, order=obj).first()
+        if driver_response:
+            serializer = DriverResponseSerializer(driver_response)
+            return serializer.data
+        else:
+            return None
 
 
 class OrderRatingSerializer(serializers.ModelSerializer):

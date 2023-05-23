@@ -140,15 +140,48 @@ def order_detail(request, order_id):
     return JsonResponse(data)
 
 
+@api_view(['PUT'])
+@permission_classes([permissions.IsAuthenticated])
+def update_response_status(request, response_id):
+    # Retrieve the DriverResponse object based on the user token
+    driver_response = get_object_or_404(DriverResponse, driver=request.user.id, id=response_id)
+
+    # Update the status field
+    driver_response.status = request.data.get('status')
+    driver_response.save()
+
+    # Return a success response
+    serializer = DriverResponseSerializer(driver_response)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['PUT'])
+@permission_classes([permissions.IsAuthenticated])
+def update_response(request, response_id):
+    try:
+        driver_response = DriverResponse.objects.get(id=response_id)
+    except DriverResponse.DoesNotExist:
+        return Response({'success': False, 'error': 'Driver response not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    price = request.data.get('price')
+
+    if price:
+        driver_response.price = price
+
+    driver_response.save()
+
+    return Response({'success': True, 'driver_response_id': driver_response.id})
+
+
 @api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
 def choose_driver(request):
     order_id = request.data.get('order_id')
     driver_id = request.data.get('driver_id')
     price = request.data.get('price')
-    duration = request.data.get('duration')
     order = Order.objects.get(id=order_id)
     driver = Driver.objects.get(id=driver_id)
-    driver_response = DriverResponse.objects.create(order=order, driver=driver, price=price, duration=duration)
+    driver_response = DriverResponse.objects.create(order=order, driver=driver, price=price)
     return Response({'success': True, 'driver_response_id': driver_response.id})
 
 
