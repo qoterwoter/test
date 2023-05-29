@@ -83,10 +83,10 @@ class Car(models.Model):
 class Driver(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
     rating = models.IntegerField(verbose_name=('рейтинг'))
-    car = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name=('автомобиль'), null=True, blank=True)
+    car = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name=('автомобиль'), null=True, blank=True, limit_choices_to={'car_status': 'approved'})
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name}"
+        return f"{self.user.first_name} {self.user.last_name}, {self.rating} ★"
 
     class Meta:
         verbose_name = ('Водитель')
@@ -97,7 +97,7 @@ class Order(models.Model):
     from_location = models.CharField(max_length=100, verbose_name=('откуда'))
     to_location = models.CharField(max_length=100, verbose_name=('куда'))
     departure_time = models.DateTimeField(verbose_name=('время отправления'))
-    client = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=('клиент'))
+    client = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=('клиент'), null=True, blank=True)
     driver = models.ForeignKey('Driver', on_delete=models.CASCADE, verbose_name=('водитель'), null=True, blank=True)
     men_amount = models.IntegerField(verbose_name=('количество взрослых'))
     children_amount = models.IntegerField(verbose_name=('количество детей'))
@@ -118,11 +118,11 @@ class DriverResponse(models.Model):
         ('a', 'Выбран пользователем'),
         ('n', ''),
     )
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Заказ')
+    driver = models.ForeignKey(Driver, on_delete=models.CASCADE, verbose_name='Водитель')
     price = models.IntegerField(verbose_name='Стоимость', null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='n')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создан в")
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='n', verbose_name='Статус')
 
     class Meta:
         verbose_name = ('Отклик на заказ')
@@ -137,7 +137,7 @@ class OrderRating(models.Model):
     communication_rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name='Коммуникация')
     driver_rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name='Водитель')
     transport_rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)],verbose_name='Транспорт')
-    order = models.ForeignKey('Order', on_delete=models.CASCADE, verbose_name='Заказ')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name='Заказ')
 
     class Meta:
         verbose_name = ('Оценка заказа')
@@ -145,7 +145,7 @@ class OrderRating(models.Model):
         unique_together = ('order',)  # make order field unique
 
     def __str__(self):
-        return f"{self.id}. Оценка заказа от {self.order.created_at.strftime('%Y %m %d в %H:%M')}"
+        return f"Оценка №{self.id} от {self.order.created_at.strftime('%Y %m %d в %H:%M')}"
 
 
 class Feedback(models.Model):
@@ -161,7 +161,7 @@ class Feedback(models.Model):
     date = models.DateTimeField(auto_now=True, verbose_name='Дата создания')
 
     def __str__(self):
-        return f"{self.client.first_name} {self.client.last_name}. {self.rating} ★"
+        return f"{self.client.first_name} {self.client.last_name}. Оценка - {self.rating} ★"
 
     class Meta:
         verbose_name = ('Отзыв')
@@ -174,17 +174,17 @@ class SupportRequest(models.Model):
         ('ongoing', 'В работе'),
         ('resolved', 'Решен'),
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    title = models.CharField(max_length=100)
-    description = models.TextField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Статус")
+    title = models.CharField(max_length=100, verbose_name="Заголовок")
+    description = models.TextField(verbose_name="Описание проблемы")
 
     class Meta:
         verbose_name = ('Запрос в техподдержку')
         verbose_name_plural = ('Запросы в техподдержку')
 
     def __str__(self):
-        return f"{self.user}"
+        return f"Запрос №{self.id} от {self.user.first_name} {self.user.last_name}."
 
 
 @receiver(post_save, sender=User)
