@@ -9,6 +9,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.contrib.auth.models import UserManager as BaseUserManager
+import time
 
 
 class UserManager(BaseUserManager):
@@ -50,6 +51,9 @@ class User(AbstractUser):
             'Specific permissions for this user.'),
     )
 
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.username})"
+
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
@@ -81,8 +85,8 @@ class Driver(models.Model):
     rating = models.IntegerField(verbose_name=('рейтинг'))
     car = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name=('автомобиль'), null=True, blank=True)
 
-    def __str_(self):
-        return self.name
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
 
     class Meta:
         verbose_name = ('Водитель')
@@ -105,8 +109,8 @@ class Order(models.Model):
         verbose_name = ('Заказ')
         verbose_name_plural = ('Заказы')
 
-    def __str_(self):
-        return f"{self.from_location} - {self.to_location} ({self.departure_time})"
+    def __str__(self):
+        return f"Заказ №{self.id}. {self.from_location} - {self.to_location} ({self.departure_time.strftime('%Y %m %d в %H:%M')})"
 
 
 class DriverResponse(models.Model):
@@ -125,6 +129,9 @@ class DriverResponse(models.Model):
         verbose_name_plural = ('Отклики на заказы')
         unique_together = ('order', 'driver')
 
+    def __str__(self):
+        return f"{self.order} - {self.driver}"
+
 
 class OrderRating(models.Model):
     communication_rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], verbose_name='Коммуникация')
@@ -136,6 +143,9 @@ class OrderRating(models.Model):
         verbose_name = ('Оценка заказа')
         verbose_name_plural = ('Оценки заказов')
         unique_together = ('order',)  # make order field unique
+
+    def __str__(self):
+        return f"{self.id}. Оценка заказа от {self.order.created_at.strftime('%Y %m %d в %H:%M')}"
 
 
 class Feedback(models.Model):
@@ -150,8 +160,8 @@ class Feedback(models.Model):
     status = models.CharField(choices=STATUS_CHOICE, verbose_name='Статус отзыва', max_length=8, default='on_moder')
     date = models.DateTimeField(auto_now=True, verbose_name='Дата создания')
 
-    def __str_(self):
-        return f"{self.client.username} - {self.rating}"
+    def __str__(self):
+        return f"{self.client.first_name} {self.client.last_name}. {self.rating} ★"
 
     class Meta:
         verbose_name = ('Отзыв')
@@ -172,6 +182,9 @@ class SupportRequest(models.Model):
     class Meta:
         verbose_name = ('Запрос в техподдержку')
         verbose_name_plural = ('Запросы в техподдержку')
+
+    def __str__(self):
+        return f"{self.user}"
 
 
 @receiver(post_save, sender=User)
