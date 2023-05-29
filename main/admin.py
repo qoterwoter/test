@@ -31,7 +31,7 @@ admin.site.register(Car, CarAdmin)
 
 
 class DriverAdmin(admin.ModelAdmin):
-    list_display = ('user_name', 'rating', 'car_name')
+    list_display = ('user_name', 'rating', 'car_name', 'id')
     list_filter = ('rating',)
 
     def car_name(self, obj):
@@ -119,7 +119,7 @@ admin.site.register(SupportRequest, SupportRequestAdmin)
 
 
 class DriverResponseAdmin(admin.ModelAdmin):
-    list_display = ('display_order', 'display_driver', 'price', 'created_at', 'status')
+    list_display = ('display_order', 'display_driver', 'price', 'created_at', 'status', 'id')
     list_filter = ('status',)
     actions = ['select_driver', 'unselect_driver']
 

@@ -30,22 +30,6 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
-class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        if self.request.user.is_staff:
-            return Order.objects.all()
-        else:
-            return Order.objects.filter(client=self.request.user)
-
-    def perform_create(self, serializer):
-        client = self.request.user
-        serializer.save(client=client)
-
-
 class OrderRatingViewSet(viewsets.ModelViewSet):
     queryset = OrderRating.objects.all()
     serializer_class = OrderRatingSerializer
@@ -64,6 +48,22 @@ class OrderRatingViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Order.objects.all()
+        else:
+            return Order.objects.filter(client=self.request.user)
+
+    def perform_create(self, serializer):
+        client = self.request.user
+        serializer.save(client=client)
 
 
 class SupportViewSet(viewsets.ModelViewSet):
@@ -118,6 +118,7 @@ def order_detail(request, order_id):
     driver_responses = list(DriverResponse.objects.filter(order=order_id))
     driver_response_serializer = DriverResponseSerializer(driver_responses, many=True)
     driver_responses_data = driver_response_serializer.data
+    user_rating = OrderRatingSerializer.objects.filter()
 
     data = {
         'order_id': order.id,
@@ -140,19 +141,9 @@ def order_detail(request, order_id):
     return JsonResponse(data)
 
 
-@api_view(['PUT'])
-@permission_classes([permissions.IsAuthenticated])
-def update_response_status(request, response_id):
-    # Retrieve the DriverResponse object based on the user token
-    driver_response = get_object_or_404(DriverResponse, driver=request.user.id, id=response_id)
-
-    # Update the status field
-    driver_response.status = request.data.get('status')
-    driver_response.save()
-
-    # Return a success response
-    serializer = DriverResponseSerializer(driver_response)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+class DriverResponseViewSet(viewsets.ModelViewSet):
+    queryset = DriverResponse.objects.all()
+    serializer_class = DriverResponseSerializer
 
 
 @api_view(['PUT'])

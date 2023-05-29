@@ -32,12 +32,20 @@ class CarSerializer(serializers.ModelSerializer):
             , 'photo_with_car_pass': {'required': False}, 'taxi_license': {'required': False}, 'car_status': {'required': False}}
 
 
+class OrderRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderRating
+        fields = ('id','order','communication_rating', 'driver_rating', 'transport_rating')
+
+
 class OrderSerializer(serializers.ModelSerializer):
     response = serializers.SerializerMethodField()
+    ratings = OrderRatingSerializer(required=False, read_only=True)
 
     class Meta:
         model = Order
-        fields = ('id', 'from_location', 'to_location', 'departure_time', 'client', 'driver', 'men_amount', 'children_amount', 'created_at', 'comment', 'price', 'response')
+        fields = ('id', 'ratings', 'from_location', 'to_location', 'departure_time', 'client',
+                  'driver', 'men_amount', 'children_amount', 'created_at', 'comment', 'price', 'response', )
         extra_kwargs = {
             'client': {'required': False},
         }
@@ -49,12 +57,6 @@ class OrderSerializer(serializers.ModelSerializer):
             return serializer.data
         else:
             return None
-
-
-class OrderRatingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderRating
-        fields = '__all__'
 
 
 class SupportRequestSerializer(serializers.ModelSerializer):

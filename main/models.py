@@ -1,7 +1,6 @@
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import AbstractUser, Group
-import datetime
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -9,7 +8,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.contrib.auth.models import UserManager as BaseUserManager
-import time
+from django.db.models import Avg
 
 
 class UserManager(BaseUserManager):
@@ -82,7 +81,7 @@ class Car(models.Model):
 
 class Driver(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
-    rating = models.IntegerField(verbose_name=('рейтинг'))
+    rating = models.IntegerField(verbose_name=('рейтинг'), default=0, null=True, blank=True)
     car = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name=('автомобиль'), null=True, blank=True, limit_choices_to={'car_status': 'approved'})
 
     def __str__(self):
@@ -91,6 +90,11 @@ class Driver(models.Model):
     class Meta:
         verbose_name = ('Водитель')
         verbose_name_plural = ('Водители')
+
+    def update_rating(self):
+        avg_rating = self.ratings.filter(driver_rating__isnull=False).aggregate(Avg('driver_rating'))['driver_rating__avg']
+        self.rating = avg_rating if avg_rating else 0
+        self.save()
 
 
 class Order(models.Model):
@@ -122,7 +126,7 @@ class DriverResponse(models.Model):
     driver = models.ForeignKey(Driver, on_delete=models.CASCADE, verbose_name='Водитель')
     price = models.IntegerField(verbose_name='Стоимость', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создан в")
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='n', verbose_name='Статус')
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='n', verbose_name='Статус', null=True, blank=True)
 
     class Meta:
         verbose_name = ('Отклик на заказ')
