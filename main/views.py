@@ -118,7 +118,6 @@ def order_detail(request, order_id):
     driver_responses = list(DriverResponse.objects.filter(order=order_id))
     driver_response_serializer = DriverResponseSerializer(driver_responses, many=True)
     driver_responses_data = driver_response_serializer.data
-    user_rating = OrderRatingSerializer.objects.filter()
 
     data = {
         'order_id': order.id,

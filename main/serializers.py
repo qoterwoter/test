@@ -35,7 +35,7 @@ class CarSerializer(serializers.ModelSerializer):
 class OrderRatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderRating
-        fields = ('id','order','communication_rating', 'driver_rating', 'transport_rating')
+        fields = ('id', 'order', 'communication_rating', 'driver_rating', 'transport_rating')
 
 
 class OrderSerializer(serializers.ModelSerializer):
