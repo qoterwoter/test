@@ -41,6 +41,7 @@ class OrderRatingSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     response = serializers.SerializerMethodField()
     ratings = OrderRatingSerializer(required=False, read_only=True)
+    client = UserSerializer(required=False, read_only=True)
 
     class Meta:
         model = Order
