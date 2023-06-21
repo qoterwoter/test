@@ -181,6 +181,8 @@ def get_rating(request, driver_id):
     order_ids = DriverResponse.objects.filter(driver_id=driver_id).values_list('order_id', flat=True)
     ratings = OrderRating.objects.filter(order_id__in=order_ids).select_related('order').values(
         'driver_rating',
+        'transport_rating',
+        'communication_rating'
     )
 
     return Response({'success': True, 'driver_id': driver_id, 'ratings': ratings})
