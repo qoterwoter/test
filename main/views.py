@@ -126,7 +126,6 @@ def order_detail(request, order_id):
         'departure_time': order.departure_time,
         'client': order.client.username,
         'driver_name': driver.name if driver else None,
-        'driver_rating': driver.rating if driver else None,
         'car_name': car.name if car else None,
         'car_photo_path': car.car_photo_path if car else None,
         'car_document_id': car.car_document_id.id if car else None,
@@ -134,7 +133,8 @@ def order_detail(request, order_id):
         'children_amount': order.children_amount,
         'created_at': order.created_at,
         'comment': order.comment,
-        'driver_responses': driver_responses_data
+        'driver_responses': driver_responses_data,
+        # 'ratings': ratings
     }
 
     return JsonResponse(data)
@@ -175,6 +175,17 @@ def choose_driver(request):
     return Response({'success': True, 'driver_response_id': driver_response.id})
 
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_rating(request, driver_id):
+    order_ids = DriverResponse.objects.filter(driver_id=driver_id).values_list('order_id', flat=True)
+    ratings = OrderRating.objects.filter(order_id__in=order_ids).select_related('order').values(
+        'driver_rating',
+    )
+
+    return Response({'success': True, 'driver_id': driver_id, 'ratings': ratings})
+
+
 class UserRegistrationView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
@@ -205,6 +216,7 @@ class UserLoginView(ObtainAuthToken):
         if user.is_staff:
             driver = Driver.objects.get(user=user)
             user_data['driver_id'] = driver.id
+            user_data['car_status'] = driver.car.car_status
             user_data['driver_rating'] = driver.rating
         token, created = Token.objects.get_or_create(user=user)
         user_data['token'] = token.key

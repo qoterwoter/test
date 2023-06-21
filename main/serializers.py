@@ -82,7 +82,7 @@ class DriverSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Driver
-        fields = ('id', 'rating', 'car', 'user')
+        fields = ('id', 'rating', 'notifications', 'car', 'user')
 
 
 class DriverResponseSerializer(serializers.ModelSerializer):

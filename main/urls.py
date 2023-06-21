@@ -1,7 +1,7 @@
 from django.urls import path, include
 from .views import UserRegistrationView, UserLoginView, OrderViewSet, SupportViewSet, OrderRatingViewSet, \
     FeedbackViewSet, order_detail, choose_driver, UserViewSet, CarViewSet, DriverViewSet, update_response, \
-    DriverResponseViewSet
+    DriverResponseViewSet, get_rating
 from rest_framework import routers
 
 router = routers.DefaultRouter()
@@ -21,5 +21,6 @@ urlpatterns = [
     path('orderDetail/<int:order_id>/', order_detail, name='order_detail'),
     path('choose-driver/', choose_driver),
     path('update-response/<int:response_id>/', update_response),
+    path('get-rating/<int:driver_id>/', get_rating),
     path('', include(router.urls)),
 ]

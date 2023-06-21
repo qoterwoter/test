@@ -9,6 +9,7 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.contrib.auth.models import UserManager as BaseUserManager
 from django.db.models import Avg
+from .utils import send_notification_email, send_driver_notifications
 
 
 class UserManager(BaseUserManager):
@@ -83,6 +84,7 @@ class Driver(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
     rating = models.IntegerField(verbose_name=('рейтинг'), default=0, null=True, blank=True)
     car = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name=('автомобиль'), null=True, blank=True, limit_choices_to={'car_status': 'approved'})
+    notifications = models.BooleanField(default=False, verbose_name='Уведомления')
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name}, {self.rating} ★"
@@ -116,6 +118,12 @@ class Order(models.Model):
     def __str__(self):
         return f"Заказ №{self.id}. {self.from_location} - {self.to_location} ({self.departure_time.strftime('%Y %m %d в %H:%M')})"
 
+    def save(self, *args, **kwargs):
+        created = not self.pk
+        super().save(*args, **kwargs)
+        if created:
+            send_driver_notifications(self)
+
 
 class DriverResponse(models.Model):
     STATUS_CHOICES = (
@@ -135,6 +143,14 @@ class DriverResponse(models.Model):
 
     def __str__(self):
         return f"{self.order} - {self.driver}"
+
+    def save(self, *args, **kwargs):
+        created = not self.pk  # Check if the object is being created
+        super().save(*args, **kwargs)
+        if created:
+            # Send email notification to the user
+            user_email = self.order.client.email
+            send_notification_email(user_email, self.order)
 
 
 class OrderRating(models.Model):
